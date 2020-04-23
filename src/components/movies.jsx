@@ -1,9 +1,21 @@
 import React, { Component } from 'react';
 import {getMovies} from './moviesApi';
-import Like from './../common/like'
+import Pagination from '../common/pagination';
+import {paginate} from '../utils/paginate';
+import {getGenres} from './moviesApi'
+import ListGroup from '../common/listGroup';
+import MoviesTable from '../moviesTable';
 class Movies extends Component {
     state = { 
-        movies:getMovies()
+        movies:[],
+        genres:[],
+        currentPage:1,
+        pageSize:3,
+        selectedGenre:[]
+     }
+     componentDidMount(){
+         const genres=[{names:'All Genre'},...getGenres()]
+         this.setState({movies:getMovies(),genres})
      }
     handleDelete=(movie)=>{
         const movieDel=this.state.movies.filter(m=>m.id!==movie.id);
@@ -12,40 +24,53 @@ class Movies extends Component {
     handleLike=(movie)=>{
         const movieArr=[...this.state.movies];
         const index=movieArr.indexOf(movie);
-        movieArr[index]={...movieArr[index]};
+        //movieArr[index]={...movieArr[index]};
         movieArr[index].liked=!movieArr[index].liked;
         this.setState({movies:movieArr});
     }
+    handlePageChange=(page)=>{
+        this.setState({currentPage:page})
+        //console.log(page);
+    }
+    handleSelectedItem=(genres)=>{
+        this.setState({selectedGenre:genres})
+    }
+    handleSort=(sortItem)=>{
+        console.log(sortItem);
+    }
     render() { 
         if(this.state.movies.length==0)return 'There are no movies in the list';
+        const filtered=this.state.selectedGenre && this.state.selectedGenre.id ? this.state.movies.filter(m=>m.genre===this.state.selectedGenre.names) : this.state.movies;
+        const movies=paginate(filtered,this.state.currentPage,this.state.pageSize);
         return ( 
-            <React.Fragment>
-                <p>Showing {this.state.movies.length} movies</p>
-                <table className="table">
-                    <thead>
-                        <tr>
-                        <th>Title</th>
-                        <th>Genre</th>
-                        <th>Number In Stock</th>
-                        <th>Published Date</th>
-                        <th/>
-                        <th/>
-                        </tr>
-                    </thead>
+            <div className="row">
+                <div className="col-3">
+                    <ListGroup
+                    items={this.state.genres}
+                    onItemSelected={this.handleSelectedItem}
+                    selectedItem={this.state.selectedGenre}
+                    />
+                </div>
+                <div className="col">
+                    <p>Showing {filtered.length} movies</p>
+                    <MoviesTable
+                    movies={movies}
+                    onLike={this.handleLike}
+                    onDelete={this.handleDelete}
+                    onSort={this.handleSort}
+
+                    />
+                    {/* <tr> */}
+                        <Pagination 
+                        itemsCount={filtered.length} 
+                        pageSize={this.state.pageSize}
+                        currentPage={this.state.currentPage}
+                        onPageChange={this.handlePageChange} />
+                    {/* </tr> */}
                     
-                {this.state.movies.map(movie=>(
-                    <tr key={movie.id}>
-                        <td>{movie.title}</td>
-                            <td>{movie.genre}</td>
-                            <td>{movie.numberInStock}</td>
-                            <td>{movie.publishedDate}</td>
-                            <td><Like liked={movie.liked} onClick={()=>this.handleLike(movie)}/></td>
-                            <td><button onClick={()=>this.handleDelete(movie)} className="btn btn-danger">Delete</button></td>
-                            
-                    </tr>
-                ))}
-                </table>
-            </React.Fragment>
+                </div>
+                
+            </div>
          );
     }
 }

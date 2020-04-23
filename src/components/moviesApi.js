@@ -3,14 +3,14 @@ const  movies=[
         id:0,
         title:"The Zoya Factor",
         numberInStock:6,
-        genre:'superstitious',
+        genre:'love',
         publishedDate:'2019-08-03',
         liked:false
     },
     {
         id:1,
         title:"Love Aaj Kal",
-        genre:'love and comedy',
+        genre:'action and love',
         numberInStock:2,
         publishedDate:'2015-08-03',
         liked:false
@@ -26,7 +26,7 @@ const  movies=[
     {
         id:3,
         title:"The Incredibles",
-        genre:'toy',
+        genre:'comedy',
         numberInStock:5,
         publishedDate:'2016-08-03',
         liked:false
@@ -64,7 +64,31 @@ const  movies=[
         liked:false
     }
 ];
+const genres=[
+    {
+        id:1,
+        names:'action'
+    },
+    {
+        id:2,
+        names:'love'
+    },
+    {
+        id:3,
+        names:'action and love'
+    },
+    {
+        id:4,
+        names:'comedy'
+    },
+
+
+];
 export function getMovies()
 {
     return movies;
 } 
+export function getGenres()
+{
+    return genres;
+}
