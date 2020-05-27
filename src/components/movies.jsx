@@ -4,11 +4,14 @@ import Pagination from '../common/pagination';
 import {paginate} from '../utils/paginate';
 import {getGenres} from './moviesApi'
 import ListGroup from '../common/listGroup';
-import MoviesTable from '../moviesTable';
+import MoviesTable from '../moviesTable'; 
+import {Link} from 'react-router-dom'
+import _ from 'lodash'
 class Movies extends Component {
     state = { 
         movies:[],
         genres:[],
+        sortColoumn:{path:'title',order:'asc'},
         currentPage:1,
         pageSize:3,
         selectedGenre:[]
@@ -16,6 +19,13 @@ class Movies extends Component {
      componentDidMount(){
          const genres=[{names:'All Genre'},...getGenres()]
          this.setState({movies:getMovies(),genres})
+     }
+     getPagedData=()=>{
+        const {sortColoumn}=this.state;
+        const filtered=this.state.selectedGenre && this.state.selectedGenre.id ? this.state.movies.filter(m=>m.genre===this.state.selectedGenre.names) : this.state.movies;
+        const sorted=_.orderBy(filtered,[sortColoumn.path],[sortColoumn.order])
+        const movies=paginate(sorted,this.state.currentPage,this.state.pageSize);
+        return {totalCount:filtered.length,data:movies}
      }
     handleDelete=(movie)=>{
         const movieDel=this.state.movies.filter(m=>m.id!==movie.id);
@@ -35,13 +45,14 @@ class Movies extends Component {
     handleSelectedItem=(genres)=>{
         this.setState({selectedGenre:genres})
     }
-    handleSort=(sortItem)=>{
-        console.log(sortItem);
+    handleSort=(sortColoumn)=>{
+       
+        this.setState({sortColoumn})
     }
     render() { 
         if(this.state.movies.length==0)return 'There are no movies in the list';
-        const filtered=this.state.selectedGenre && this.state.selectedGenre.id ? this.state.movies.filter(m=>m.genre===this.state.selectedGenre.names) : this.state.movies;
-        const movies=paginate(filtered,this.state.currentPage,this.state.pageSize);
+        const {sortColoumn}=this.state;
+        const {totalCount,data:movies}=this.getPagedData()
         return ( 
             <div className="row">
                 <div className="col-3">
@@ -51,10 +62,11 @@ class Movies extends Component {
                     selectedItem={this.state.selectedGenre}
                     />
                 </div>
-                <div className="col">
-                    <p>Showing {filtered.length} movies</p>
+                <div className="col">     
+                    <span>Showing {totalCount} movies</span><div style={{float:"right",marginRight:'10px',marginBottom:'10px'}}><Link className="btn btn-primary" to="/movies/new/new">New Movie</Link></div>
                     <MoviesTable
                     movies={movies}
+                    sortColoumn={sortColoumn}
                     onLike={this.handleLike}
                     onDelete={this.handleDelete}
                     onSort={this.handleSort}
@@ -62,7 +74,7 @@ class Movies extends Component {
                     />
                     {/* <tr> */}
                         <Pagination 
-                        itemsCount={filtered.length} 
+                        itemsCount={totalCount} 
                         pageSize={this.state.pageSize}
                         currentPage={this.state.currentPage}
                         onPageChange={this.handlePageChange} />
